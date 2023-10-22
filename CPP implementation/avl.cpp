@@ -44,7 +44,7 @@ node* avl::createNode(int_pair elt){
                 return nullptr;
         }
         n->data = elt;
-
+        n -> max_right = 0;
         n->left = nullptr;
         n->right = nullptr;
         n->parent = nullptr;
@@ -57,6 +57,7 @@ void avl::insert(int_pair elt){
         node* prev = ptr;
         while(ptr){
                 path.push_back(ptr);
+                ptr -> max_right = max(ptr -> max_right, elt.second);
                 if(elt > ptr->data){
                         prev = ptr;
                         ptr = ptr->right;
@@ -75,6 +76,12 @@ void avl::insert(int_pair elt){
                 prev->left->parent = prev;
         }
 
+        for (node* node : path) {
+            node->max_right = max(node->data.second, max(
+                node->left ? node->left->max_right : -1,
+                node->right ? node->right->max_right : -1
+            ));
+        }
         node* n = checkImbalance(path);
         if(n) balance(n);
 }
