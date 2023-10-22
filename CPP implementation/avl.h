@@ -51,4 +51,5 @@ std::vector<node*> levelorder(node*);
 void print(const std::string& prefix, node* node, bool isLeft);
 void print(node* );
 node* inorder_successor(node*);
+std::ostream& operator<< (std::ostream& , std::pair<int,int> );
 

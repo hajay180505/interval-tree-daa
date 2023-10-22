@@ -55,6 +55,7 @@ void avl::insert(int_pair elt){
         vector<node*> path;
         ptr = root;
         node* prev = ptr;
+        node* _n = createNode(elt);
         while(ptr){
                 path.push_back(ptr);
                 ptr -> max_right = max(ptr -> max_right, elt.second);
@@ -68,20 +69,24 @@ void avl::insert(int_pair elt){
                 }
         }
         if(elt > prev->data){
-                prev->right = createNode(elt);
+                prev->right = _n;
                 prev->right->parent = prev;
         }
         else{
-                prev->left = createNode(elt);
+                prev->left = _n;
                 prev->left->parent = prev;
         }
 
-        for (node* node : path) {
-            node->max_right = max(node->data.second, max(
-                node->left ? node->left->max_right : -1,
-                node->right ? node->right->max_right : -1
-            ));
+
+        path.push_back(_n);
+        for (int i = path.size() - 1; i >= 0; i--) {
+                node* node = path[i];
+                int leftMaxRight = node->left ? node->left->max_right : -1;
+                int rightMaxRight = node->right ? node->right->max_right : -1;
+                node->max_right = max(node->data.second, max(leftMaxRight, rightMaxRight));
         }
+
+        path.pop_back();
         node* n = checkImbalance(path);
         if(n) balance(n);
 }
@@ -277,6 +282,7 @@ std::optional<int_pair> avl::searchQuery(node* n, int_pair val){
 vector<int_pair> avl::getAllOverlaps(int_pair val){
         vector<int_pair> result;
         searchAllQuery(root,val,result);
+        return result;
 }
 
 void avl::searchAllQuery(node* node, int_pair val, vector<int_pair>& res){
