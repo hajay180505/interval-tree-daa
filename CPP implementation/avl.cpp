@@ -138,6 +138,15 @@ void avl::balance(node* A){
         }
 }
 
+void avl::updateMaxRight(vector<node*>& path) {
+    for (int i = path.size() - 1; i >= 0; i--) {
+        node* node = path[i];
+        int leftMaxRight = node->left ? node->left->max_right : -1;
+        int rightMaxRight = node->right ? node->right->max_right : -1;
+        node->max_right = max(node->data.second, max(leftMaxRight, rightMaxRight));
+    }
+}
+
 void avl::remove(int_pair elt){
         vector<node*> path;
         ptr = root;
@@ -162,6 +171,7 @@ void avl::remove(int_pair elt){
                         delete ptr;
                         node* u  = checkImbalance(path);
                         if(u) balance(u);
+                        updateMaxRight(path);
                 }
         }
         else if(!ptr->left){
@@ -180,6 +190,7 @@ void avl::remove(int_pair elt){
                 delete ptr;
                 node* u  = checkImbalance(path);
                 if(u) balance(u);
+                updateMaxRight(path);
         }
         else if(!ptr->right){
                 path.pop_back();
@@ -197,6 +208,7 @@ void avl::remove(int_pair elt){
                 delete ptr;
                 node* u  = checkImbalance(path);
                 if(u) balance(u);
+                updateMaxRight(path);
 
         }
         else{
@@ -215,8 +227,8 @@ void avl::remove(int_pair elt){
                 path.pop_back();
                 node* u = checkImbalance(path);
                 if(u) balance(u);
+                updateMaxRight(path);
         }
-
 
 }
 
