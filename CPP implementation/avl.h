@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <optional>
+#include <experimental/optional>
 #include <utility>
-
+// using std::experimental::optional
 
 struct node{
         std::pair<int,int> data;
@@ -18,7 +18,7 @@ class avl{
 
         private:
                 bool overlap(std::pair<int,int>,std::pair<int,int>);
-                std::optional<std::pair<int,int>> searchQuery(node*,std::pair<int,int> );
+                std::experimental::optional<std::pair<int,int>> searchQuery(node*,std::pair<int,int> );
                 void searchAllQuery(node*, std::pair<int,int> , std::vector<std::pair<int,int>>&);
 
 
@@ -41,8 +41,10 @@ class avl{
                 node* RL(node*);
                 node* RR(node*);
 
-                std::optional < std::pair<int,int> > getOverlap(std::pair<int,int>);
+                std::experimental::optional < std::pair<int,int> > getOverlap(std::pair<int,int>);
                 std::vector<std::pair<int,int>> getAllOverlaps(std::pair<int,int>);
+                void updateMaxRight(std::vector<node*>& path) ;
+
 };
 void inorder(node*);
 void preorder(node*);
