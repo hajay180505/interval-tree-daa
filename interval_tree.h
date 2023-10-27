@@ -14,7 +14,7 @@ struct node{
 };
 
 
-class avl{
+class interval_tree{
 
         private:
                 bool overlap(std::pair<int,int>,std::pair<int,int>);
@@ -27,14 +27,15 @@ class avl{
                 node* root;
                 int count;
 
-                avl();
-                avl(std::pair<int,int> elt);
+                interval_tree();
+                interval_tree(std::pair<int,int> elt);
                 node* createNode(std::pair<int,int>);
                 void insertRoot(std::pair<int,int> elt);
                 void insert(std::pair<int,int> elt);
                 node* checkImbalance(const std::vector<node*>&);
                 void balance(node*);
                 void remove(std::pair<int,int> elt);
+                void updateMaxRight(std::vector<node*>& path);
 
                 node* LL(node*);
                 node* LR(node*);
@@ -52,4 +53,6 @@ void print(const std::string& prefix, node* node, bool isLeft);
 void print(node* );
 node* inorder_successor(node*);
 std::ostream& operator<< (std::ostream& , std::pair<int,int> );
-
+//void printTree(node*, const std::string& , bool);
+std::ostream& operator<< (std::ostream& c , node* p);
+//void printTreeStructure(node*);

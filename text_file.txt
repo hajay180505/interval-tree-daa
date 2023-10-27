@@ -1,0 +1,22 @@
+node:
+    int
+    ptrs
+    functions
+
+if int i insert into it:
+    query for any intersrsction for i in it
+    if query is not null:
+        time free illa
+        cant insert
+    else:
+        we insert
+
+node:
+    int
+    <prem,harold das>
+    ptrs
+    functions
+
+gimme ppl who are free in 10,20
+    10,20 intersect: list
+    level order - list -> ppl ;

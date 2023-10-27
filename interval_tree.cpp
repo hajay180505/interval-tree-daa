@@ -1,5 +1,5 @@
 #include <vector>
-#include "avl.h"
+#include "interval_tree.h"
 #include <iostream>
 #include <queue>
 #include <limits.h>
@@ -17,27 +17,27 @@ int node::balanceFactor(){
         return ( (this->left->height()) - (this->right->height()) );
 }
 
-//avl functions
-avl::avl(){
+//interval_tree functions
+interval_tree::interval_tree(){
         cout<<"CALL insertRoot!!";
         count = 0;
 }
 
-avl::avl(int_pair elt){
+interval_tree::interval_tree(int_pair elt){
         node* n = createNode(elt);
         root = n;
         count=1;
 }
 
-void avl::insertRoot(int_pair elt){
+void interval_tree::insertRoot(int_pair elt){
         node* n = createNode(elt);
         root = n;
-
+	
         count++;
 
 }
 
-node* avl::createNode(int_pair elt){
+node* interval_tree::createNode(int_pair elt){
         node* n = new node;
         if(!n) {
                 cout<<"No memory allocted!"<<endl;
@@ -51,7 +51,7 @@ node* avl::createNode(int_pair elt){
         return n;
 }
 
-void avl::insert(int_pair elt){
+void interval_tree::insert(int_pair elt){
         vector<node*> path;
         ptr = root;
         node* prev = ptr;
@@ -78,20 +78,15 @@ void avl::insert(int_pair elt){
         }
 
 
-        path.push_back(_n);
-        for (int i = path.size() - 1; i >= 0; i--) {
-                node* node = path[i];
-                int leftMaxRight = node->left ? node->left->max_right : -1;
-                int rightMaxRight = node->right ? node->right->max_right : -1;
-                node->max_right = max(node->data.second, max(leftMaxRight, rightMaxRight));
-        }
-
-        path.pop_back();
         node* n = checkImbalance(path);
         if(n) balance(n);
+
+        path.push_back(_n);
+        updateMaxRight(path);
+        path.pop_back();
 }
 
-node* avl::checkImbalance(const vector<node*>& path){
+node* interval_tree::checkImbalance(const vector<node*>& path){
         node* A = nullptr;
         for(auto it=path.rbegin() ; it!=path.rend() ;  it++){
                 int bf = (*it)->balanceFactor();
@@ -103,7 +98,7 @@ node* avl::checkImbalance(const vector<node*>& path){
         return A;
 }
 
-void avl::balance(node* A){
+void interval_tree::balance(node* A){
         if(!A) return;
         node* p = A->parent;
         node* u = nullptr;
@@ -138,103 +133,95 @@ void avl::balance(node* A){
         }
 }
 
-void avl::updateMaxRight(vector<node*>& path) {
+void interval_tree::updateMaxRight(vector<node*>& path) {
     for (int i = path.size() - 1; i >= 0; i--) {
         node* node = path[i];
+	//cout << "node =" << node << endl;
         int leftMaxRight = node->left ? node->left->max_right : -1;
         int rightMaxRight = node->right ? node->right->max_right : -1;
-        node->max_right = max(node->data.second, max(leftMaxRight, rightMaxRight));
+        //cout<<"LMS = "<< leftMaxRight << " ; RMS = " << rightMaxRight << " ; DS = "<<node->data.second << endl;
+	
+	node->max_right = max(node->data.second, max(leftMaxRight, rightMaxRight));
     }
 }
 
-void avl::remove(int_pair elt){
-        vector<node*> path;
-        ptr = root;
-        while(ptr){
-                path.push_back(ptr);
-                if(elt> ptr->data) ptr = ptr->right;
-                else if(elt< ptr->data) ptr = ptr->left;
-                else break;
+void interval_tree::remove(int_pair elt) {
+    vector<node*> path;
+    ptr = root;
+    while (ptr) {
+        path.push_back(ptr);
+        if (elt > ptr->data) {
+            ptr = ptr->right;
+        } else if (elt < ptr->data) {
+            ptr = ptr->left;
+        } else {
+            break;
         }
-        if(!ptr){
-                cout<<"Element not found! So, not deleted."<<endl;
-                return;
-        }
-        node* p = ptr->parent;
-        if(!ptr->left and !ptr->right){
-                if(p){
-                        path.pop_back();
-                        if(p->left == ptr)
-                                p->left = nullptr;
-                        else
-                                p->right = nullptr;
-                        delete ptr;
-                        node* u  = checkImbalance(path);
-                        if(u) balance(u);
-                        updateMaxRight(path);
-                }
-        }
-        else if(!ptr->left){
-                path.pop_back();
-                if(p){
-                        if(p->left == ptr)
-                                p->left = ptr->right;
-                        else
-                                p->right = ptr->right;
-                        ptr->right->parent = p;
-                }
-                else{
-                        root = root->right;
-                        root->parent = nullptr;
-                }
-                delete ptr;
-                node* u  = checkImbalance(path);
-                if(u) balance(u);
-                updateMaxRight(path);
-        }
-        else if(!ptr->right){
-                path.pop_back();
-                if(p){
-                        if(p->left == ptr)
-                                p->left = ptr->left;
-                        else
-                                p->right = ptr->left;
-                        ptr->left->parent = p;
-                }
-                else{
-                        root = root->left;
-                        root->parent = nullptr;
-                }
-                delete ptr;
-                node* u  = checkImbalance(path);
-                if(u) balance(u);
-                updateMaxRight(path);
+    }
 
-        }
-        else{
-                node* s = inorder_successor(ptr);
-                if(ptr->right == s){
-                        ptr->right = s->right;
-                        if(s->right) s->right->parent = ptr;
-                        ptr->data = s->data;
-                }
-                else{
-                        s->parent->left = s->right;
-                        if(s->right) s->right->parent = s->parent;
-                        ptr->data = s->data;
-                }
-                delete s;
-                path.pop_back();
-                node* u = checkImbalance(path);
-                if(u) balance(u);
-                updateMaxRight(path);
-        }
+    if (!ptr) {
+        cout << "Element not found! So, not deleted." << endl;
+        return;
+    }
 
+    node* p = ptr->parent;
+
+    if (!ptr->left && !ptr->right) {
+        // Case 1: Node has no children
+        if (p) {
+            if (p->left == ptr) {
+                p->left = nullptr;
+            } else {
+                p->right = nullptr;
+            }
+        } else {
+            // The removed node is the root
+            root = nullptr;
+        }
+        delete ptr;
+    } else if (!ptr->left || !ptr->right) {
+        // Case 2: Node has one child
+        node* child = (ptr->left) ? ptr->left : ptr->right;
+        if (p) {
+            if (p->left == ptr) {
+                p->left = child;
+            } else {
+                p->right = child;
+            }
+            child->parent = p;
+        } else {
+            // The removed node is the root
+            root = child;
+            root->parent = nullptr;
+        }
+        delete ptr;
+    } else {
+        // Case 3: Node has two children
+        node* successor = inorder_successor(ptr);
+        ptr->data = successor->data;
+        // Remove the successor node
+        if (successor->parent->left == successor) {
+            successor->parent->left = successor->right;
+        } else {
+            successor->parent->right = successor->right;
+        }
+        if (successor->right) {
+            successor->right->parent = successor->parent;
+        }
+        delete successor;
+    }
+
+    // Update max_right values and balance the tree if necessary
+    node* u = checkImbalance(path);
+    if (u) {
+        balance(u);
+    }
+    updateMaxRight(path);
 }
 
 //rotations
 
-node* avl::LL(node* A){
+node* interval_tree::LL(node* A){
         node* k = new node;
         k = A->left;
         A->left = k->right;
@@ -244,19 +231,19 @@ node* avl::LL(node* A){
         return k;
 }
 
-node* avl::LR(node* A){
+node* interval_tree::LR(node* A){
         A->left = RR(A->left);
         if(A->left) A->left->parent = A;
         return LL(A);
 }
 
-node* avl::RL(node* A){
+node* interval_tree::RL(node* A){
         A->right = LL(A->right);
         if(A->right) A->right->parent = A;
         return RR(A);
 }
 
-node* avl::RR(node* A){
+node* interval_tree::RR(node* A){
         node* k = new node;
         k = A->right;
         A->right = k->left;
@@ -266,11 +253,11 @@ node* avl::RR(node* A){
         return k;
 
 }
-optional<int_pair> avl::getOverlap(int_pair val){
+optional<int_pair> interval_tree::getOverlap(int_pair val){
         return searchQuery(root, val);
 }
 
-std::optional<int_pair> avl::searchQuery(node* n, int_pair val){
+optional<int_pair> interval_tree::searchQuery(node* n, int_pair val){
         if (!n)
             return {} ;
         if (overlap(n->data, val))
@@ -291,13 +278,13 @@ std::optional<int_pair> avl::searchQuery(node* n, int_pair val){
         }
 }
 
-vector<int_pair> avl::getAllOverlaps(int_pair val){
+vector<int_pair> interval_tree::getAllOverlaps(int_pair val){
         vector<int_pair> result;
         searchAllQuery(root,val,result);
         return result;
 }
 
-void avl::searchAllQuery(node* node, int_pair val, vector<int_pair>& res){
+void interval_tree::searchAllQuery(node* node, int_pair val, vector<int_pair>& res){
         if (!node) 
             return ; 
         if (overlap(node->data, val))
@@ -321,7 +308,7 @@ void avl::searchAllQuery(node* node, int_pair val, vector<int_pair>& res){
                 
 }
 
-bool avl::overlap(int_pair i1, int_pair i2){
+bool interval_tree::overlap(int_pair i1, int_pair i2){
         array<int_pair,2> arr;
         if(i1.first < i2.first){
                 arr[0] = i1;
@@ -352,6 +339,11 @@ bool avl::overlap(int_pair i1, int_pair i2){
 
 std::ostream& operator<< (std::ostream& c , std::pair<int,int> p){
         c << "(" << p.first << ", " << p.second << ")";
+        return c;
+}
+
+std::ostream& operator<< (std::ostream& c , node* p){
+        c << "(" << p->data << " [" << p->max_right << "]";
         return c;
 }
 
@@ -395,17 +387,17 @@ vector<node*> levelorder(node* rt){
 }
 
 void print(const string& prefix, node* node, bool isLeft){
-    if(node){
-        cout << prefix;
-        cout << (isLeft ? "├──" : "└──" );
-        cout << node->data << endl;
-        print( prefix + (isLeft ? "│   " : "    "), node->left, true);
-        print( prefix + (isLeft ? "│   " : "    "), node->right, false);
-    }
+	if(node){
+        	cout << prefix;
+         	cout << (isLeft ? "├──" : "└──" );
+         	cout << node<< endl;
+         	print( prefix + (isLeft ? "│   " : "    "), node->left, true);
+        	print( prefix + (isLeft ? "│   " : "    "), node->right, false);
+     	}
 }
 
 void print(node* n){
-    print("", n, false);
+	print("", n, false);
 }
 
 node* inorder_successor(node* u){
@@ -420,3 +412,25 @@ node* inorder_successor(node* u){
         return u->parent;
 }
 
+
+//void printTree(node* root, const string& prefix = "", bool isLeft = true) {
+//    if (root == nullptr) {
+//        return;
+//    }
+//
+//    std::cout << prefix;
+//    std::cout << (isLeft ? "├── " : "└── ");
+//    std::cout << root->data << std::endl;
+
+//    printTree(root->left, prefix + (isLeft ? "│   " : "    "), true);
+//    printTree(root->right, prefix + (isLeft ? "│   " : "    "), false);
+//}
+
+//void printTreeStructure(node* root) {
+//    if (root == nullptr) {
+//        std::cout << "Empty tree" << std::endl;
+//    } else {
+//        std::cout << "Root" << std::endl;
+//        printTree(root, "", false);
+//    }
+//}
