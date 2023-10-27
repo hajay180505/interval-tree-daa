@@ -343,7 +343,7 @@ std::ostream& operator<< (std::ostream& c , std::pair<int,int> p){
 }
 
 std::ostream& operator<< (std::ostream& c , node* p){
-        c << "(" << p->data << " [" << p->max_right << "]";
+        c << p->data << " [" << p->max_right << "]";
         return c;
 }
 

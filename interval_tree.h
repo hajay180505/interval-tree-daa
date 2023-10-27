@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <experimental/optional>
+#include <optional>
 #include <utility>
 // using std::experimental::optional
 
@@ -18,7 +18,7 @@ class interval_tree{
 
         private:
                 bool overlap(std::pair<int,int>,std::pair<int,int>);
-                std::experimental::optional<std::pair<int,int>> searchQuery(node*,std::pair<int,int> );
+                std::optional<std::pair<int,int>> searchQuery(node*,std::pair<int,int> );
                 void searchAllQuery(node*, std::pair<int,int> , std::vector<std::pair<int,int>>&);
 
 
@@ -35,14 +35,13 @@ class interval_tree{
                 node* checkImbalance(const std::vector<node*>&);
                 void balance(node*);
                 void remove(std::pair<int,int> elt);
-                void updateMaxRight(std::vector<node*>& path);
 
                 node* LL(node*);
                 node* LR(node*);
                 node* RL(node*);
                 node* RR(node*);
 
-                std::experimental::optional < std::pair<int,int> > getOverlap(std::pair<int,int>);
+                std::optional < std::pair<int,int> > getOverlap(std::pair<int,int>);
                 std::vector<std::pair<int,int>> getAllOverlaps(std::pair<int,int>);
                 void updateMaxRight(std::vector<node*>& path) ;
 
