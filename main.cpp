@@ -58,25 +58,27 @@ int main(){
 
     print(it.root);
 
-    cout<<"20,22 : " << it.getOverlap(make_pair(20,22)).value_or(make_pair(0,0)) << endl;
+    
+    
+    cout<<"20,22 : " << it.getOverlap(make_pair(20,22))<< endl;
 
-    cout<<"24,25 : " << it.getOverlap(make_pair(24,25)).value_or(make_pair(0,0)) << endl;
+    cout<<"24,25 : " << it.getOverlap(make_pair(24,25))<< endl;
 
     cout<<"Inserting 24,24"<<endl;
     it.insert(make_pair(24,24));
 
-    cout<<"24,25 : " << it.getOverlap(make_pair(24,25)).value_or(make_pair(0,0)) << endl;
+    cout<<"24,25 : " << it.getOverlap(make_pair(24,25))<< endl;
 
-    cout<<"5,9 : " << it.getOverlap(make_pair(5,9)).value_or(make_pair(0,0)) << endl;
+    cout<<"5,9 : " << it.getOverlap(make_pair(5,9))<< endl;
 
-    cout<<"16,17 : " << it.getOverlap(make_pair(16,17)).value_or(make_pair(0,0)) << endl;
+    cout<<"16,17 : " << it.getOverlap(make_pair(16,17))<< endl;
 
     cout<<"Deleting 15,18"<<endl;
     it.remove(make_pair(15,18));
 
-    cout<<"16,17 : " << it.getOverlap(make_pair(16,17)).value_or(make_pair(0,0)) << endl;
+    cout<<"16,17 : " << it.getOverlap(make_pair(16,17))<< endl;
 
-    cout<<"0,3 : " << it.getOverlap(make_pair(0,3)).value_or(make_pair(0,0)) << endl;
+    cout<<"0,3 : " << it.getOverlap(make_pair(0,3)) << endl;
       
 
 }

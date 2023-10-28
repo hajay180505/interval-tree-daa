@@ -253,11 +253,11 @@ node* interval_tree::RR(node* A){
         return k;
 
 }
-optional<int_pair> interval_tree::getOverlap(int_pair val){
+experimental::optional<int_pair> interval_tree::getOverlap(int_pair val){
         return searchQuery(root, val);
 }
 
-optional<int_pair> interval_tree::searchQuery(node* n, int_pair val){
+experimental::optional<int_pair> interval_tree::searchQuery(node* n, int_pair val){
         if (!n)
             return {} ;
         if (overlap(n->data, val))
@@ -347,6 +347,15 @@ std::ostream& operator<< (std::ostream& c , node* p){
         return c;
 }
 
+ostream& operator<< (ostream& c, experimental::optional<pair<int,int>> opt)
+    {
+        if(opt.has_value())
+            c << opt.value();
+        else
+            c << "NULL";
+        return c;
+    }
+    
 void inorder(node* ptr){
         if(ptr){
                 inorder(ptr->left);
