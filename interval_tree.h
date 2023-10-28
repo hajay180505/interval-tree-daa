@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <experimental/optional>
+#include <optional>
 #include <utility>
 // using std::experimental::optional
 
@@ -18,7 +18,7 @@ class interval_tree{
 
         private:
                 bool overlap(std::pair<int,int>,std::pair<int,int>);
-                std::experimental::optional<std::pair<int,int>> searchQuery(node*,std::pair<int,int> );
+                std::optional<std::pair<int,int>> searchQuery(node*,std::pair<int,int> );
                 void searchAllQuery(node*, std::pair<int,int> , std::vector<std::pair<int,int>>&);
 
 
@@ -41,7 +41,7 @@ class interval_tree{
                 node* RL(node*);
                 node* RR(node*);
 
-                std::experimental::optional < std::pair<int,int> > getOverlap(std::pair<int,int>);
+                std::optional < std::pair<int,int> > getOverlap(std::pair<int,int>);
                 std::vector<std::pair<int,int>> getAllOverlaps(std::pair<int,int>);
                 void updateMaxRight(std::vector<node*>& path) ;
 
@@ -57,4 +57,4 @@ std::ostream& operator<< (std::ostream& , std::pair<int,int> );
 //void printTree(node*, const std::string& , bool);
 std::ostream& operator<< (std::ostream& c , node* p);
 //void printTreeStructure(node*);
-std::ostream& operator<< (std::ostream& , std::experimental::optional<pair<int,int>> );
+void print_pair (std::optional<std::pair<int,int>> );
