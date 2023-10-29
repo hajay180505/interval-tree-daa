@@ -20,3 +20,5 @@ node:
 gimme ppl who are free in 10,20
     10,20 intersect: list
     level order - list -> ppl ;
+
+it.getoverlap(()).has_value() ? it.getoverlap(()).value() : "Nil"

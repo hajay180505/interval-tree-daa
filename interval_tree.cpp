@@ -4,10 +4,15 @@
 #include <queue>
 #include <limits.h>
 #include <array>
+#include <set>
+#include <algorithm>
+#include <iterator>
 #define int_pair pair<int, int>
+
 
 using namespace std;
 //node functions
+
 int node::height(){
         if(!this) return 0;
         return 1+ max(this->left->height() , this->right->height());
@@ -17,27 +22,47 @@ int node::balanceFactor(){
         return ( (this->left->height()) - (this->right->height()) );
 }
 
+
+node::node() : people() , data(), max_right(0) {}
+node::node(std::pair<int,int> p ) : people(0), data(p),max_right(0) {}
+node::node(std::pair<int,int> p, std::vector<std::string> v) : data(p), people(v), max_right(0) {}
+
 //interval_tree functions
+
+
 interval_tree::interval_tree(){
-        cout<<"CALL insertRoot!!";
+        //cout<<"CALL insertRoot!!";
         count = 0;
 }
 
-interval_tree::interval_tree(int_pair elt){
+interval_tree::interval_tree(std::pair<int,int> elt){
         node* n = createNode(elt);
         root = n;
-        count=1;
+        count =1;
+}
+
+interval_tree::interval_tree(std::pair<int,int> elt, std::vector<std::string> v ){
+        node* n = createNode(elt,v);
+        root = n;
+        count =1;
+}
+
+
+void interval_tree::insertRoot(int_pair elt, vector<string> v ){
+        node* n = createNode(elt,v);
+        root = n;
+        count++;
 }
 
 void interval_tree::insertRoot(int_pair elt){
         node* n = createNode(elt);
         root = n;
-	
         count++;
-
 }
 
-node* interval_tree::createNode(int_pair elt){
+
+
+node* interval_tree::createNode(std::pair<int,int> elt){
         node* n = new node;
         if(!n) {
                 cout<<"No memory allocted!"<<endl;
@@ -50,6 +75,22 @@ node* interval_tree::createNode(int_pair elt){
         n->parent = nullptr;
         return n;
 }
+
+node* interval_tree::createNode(std::pair<int,int> elt, std::vector<std::string> v ){
+        node* n = new node;
+        if(!n) {
+                cout<<"No memory allocted!"<<endl;
+                return nullptr;
+        }
+        n->data = elt;
+        n -> max_right = 0;
+        n->left = nullptr;
+        n->right = nullptr;
+        n->parent = nullptr;
+        n->people = v;
+        return n;
+}
+
 
 void interval_tree::insert(int_pair elt){
         vector<node*> path;
@@ -85,6 +126,43 @@ void interval_tree::insert(int_pair elt){
         updateMaxRight(path);
         path.pop_back();
 }
+
+
+void interval_tree::insert(int_pair elt,vector<string> v ){
+        vector<node*> path;
+        ptr = root;
+        node* prev = ptr;
+        node* _n = createNode(elt,v);
+        while(ptr){
+                path.push_back(ptr);
+                ptr -> max_right = max(ptr -> max_right, elt.second);
+                if(elt > ptr->data){
+                        prev = ptr;
+                        ptr = ptr->right;
+                }
+                else{
+                        prev = ptr;
+                        ptr = ptr->left;
+                }
+        }
+        if(elt > prev->data){
+                prev->right = _n;
+                prev->right->parent = prev;
+        }
+        else{
+                prev->left = _n;
+                prev->left->parent = prev;
+        }
+
+
+        node* n = checkImbalance(path);
+        if(n) balance(n);
+
+        path.push_back(_n);
+        updateMaxRight(path);
+        path.pop_back();
+}
+
 
 node* interval_tree::checkImbalance(const vector<node*>& path){
         node* A = nullptr;
@@ -134,89 +212,85 @@ void interval_tree::balance(node* A){
 }
 
 void interval_tree::updateMaxRight(vector<node*>& path) {
-    for (int i = path.size() - 1; i >= 0; i--) {
-        node* node = path[i];
-	//cout << "node =" << node << endl;
-        int leftMaxRight = node->left ? node->left->max_right : -1;
-        int rightMaxRight = node->right ? node->right->max_right : -1;
-        //cout<<"LMS = "<< leftMaxRight << " ; RMS = " << rightMaxRight << " ; DS = "<<node->data.second << endl;
-	
-	node->max_right = max(node->data.second, max(leftMaxRight, rightMaxRight));
-    }
+        for (int i = path.size() - 1; i >= 0; i--) {
+                node* node = path[i];
+	        //cout << "node =" << node << endl;
+                int leftMaxRight = node->left ? node->left->max_right : -1;
+                int rightMaxRight = node->right ? node->right->max_right : -1;
+                //cout<<"LMS = "<< leftMaxRight << " ; RMS = " << rightMaxRight << " ; DS = "<<node->data.second << endl;
+                node->max_right = max(node->data.second, max(leftMaxRight, rightMaxRight));
+        }
 }
 
 void interval_tree::remove(int_pair elt) {
-    vector<node*> path;
-    ptr = root;
-    while (ptr) {
-        path.push_back(ptr);
-        if (elt > ptr->data) {
-            ptr = ptr->right;
-        } else if (elt < ptr->data) {
-            ptr = ptr->left;
-        } else {
-            break;
+        vector<node*> path;
+        ptr = root;
+        while (ptr) {
+                path.push_back(ptr);
+                if (elt > ptr->data) 
+                        ptr = ptr->right;
+                else if (elt < ptr->data) 
+                        ptr = ptr->left;
+                else 
+                        break;
         }
-    }
 
-    if (!ptr) {
-        cout << "Element not found! So, not deleted." << endl;
-        return;
-    }
+        if (!ptr) {
+                cout << "Element not found! So, not deleted." << endl;
+                return;
+        }
 
-    node* p = ptr->parent;
+        node* p = ptr->parent;
 
-    if (!ptr->left && !ptr->right) {
-        // Case 1: Node has no children
-        if (p) {
-            if (p->left == ptr) {
-                p->left = nullptr;
-            } else {
-                p->right = nullptr;
-            }
-        } else {
-            // The removed node is the root
-            root = nullptr;
+        if (!ptr->left && !ptr->right) {
+                // Case 1: Node has no children
+                if (p) {
+                        if (p->left == ptr) 
+                                p->left = nullptr;
+                        else 
+                                p->right = nullptr;
+                } 
+                else 
+                // The removed node is the root
+                        root = nullptr;
+                delete ptr;
+        } 
+        else if (!ptr->left || !ptr->right) {
+                // Case 2: Node has one child
+                node* child = (ptr->left) ? ptr->left : ptr->right;
+                if (p) {
+                        if (p->left == ptr) 
+                                p->left = child; 
+                        else 
+                                p->right = child;
+                        child->parent = p;
+                } 
+                else {
+                // The removed node is the root
+                        root = child;
+                        root->parent = nullptr;
+                }
+                delete ptr;
+        } 
+        else {
+                // Case 3: Node has two children
+                node* successor = inorder_successor(ptr);
+                ptr->data = successor->data;
+                // Remove the successor node
+                if (successor->parent->left == successor) 
+                        successor->parent->left = successor->right;
+                else 
+                        successor->parent->right = successor->right;
+                if (successor->right) 
+                        successor->right->parent = successor->parent;
+                delete successor;
         }
-        delete ptr;
-    } else if (!ptr->left || !ptr->right) {
-        // Case 2: Node has one child
-        node* child = (ptr->left) ? ptr->left : ptr->right;
-        if (p) {
-            if (p->left == ptr) {
-                p->left = child;
-            } else {
-                p->right = child;
-            }
-            child->parent = p;
-        } else {
-            // The removed node is the root
-            root = child;
-            root->parent = nullptr;
-        }
-        delete ptr;
-    } else {
-        // Case 3: Node has two children
-        node* successor = inorder_successor(ptr);
-        ptr->data = successor->data;
-        // Remove the successor node
-        if (successor->parent->left == successor) {
-            successor->parent->left = successor->right;
-        } else {
-            successor->parent->right = successor->right;
-        }
-        if (successor->right) {
-            successor->right->parent = successor->parent;
-        }
-        delete successor;
-    }
 
-    // Update max_right values and balance the tree if necessary
-    node* u = checkImbalance(path);
-    if (u) {
-        balance(u);
-    }
-    updateMaxRight(path);
+        // Update max_right values and balance the tree if necessary
+        node* u = checkImbalance(path);
+        if (u)
+                balance(u);
+        updateMaxRight(path);
 }
 
 //rotations
@@ -253,56 +327,56 @@ node* interval_tree::RR(node* A){
         return k;
 
 }
-optional<int_pair> interval_tree::getOverlap(int_pair val){
+optional<node*> interval_tree::getOverlap(int_pair val){
         return searchQuery(root, val);
 }
 
-optional<int_pair> interval_tree::searchQuery(node* n, int_pair val){
+optional<node*> interval_tree::searchQuery(node* n, int_pair val){
         if (!n)
-            return {} ;
+                return {} ;
         if (overlap(n->data, val))
-            return n->data;
+                return n;
         else{
-            int L = val.first;
-            int R = val.second;
-            if (R < n->data.first)
-                return searchQuery(n->left, val);
-            else if (L > n->data.second){
-                int z = (n->left) ? (n->left->max_right) : (INT_MIN);
-                if (z >= L)
-                    return searchQuery(n->left, val);
-                else
-                    return searchQuery(n->right, val);
-            }
-            return {};
+                int L = val.first;
+                int R = val.second;
+                if (R < n->data.first)
+                        return searchQuery(n->left, val);
+                else if (L > n->data.second){
+                        int z = (n->left) ? (n->left->max_right) : (INT_MIN);
+                        if (z >= L)
+                                return searchQuery(n->left, val);
+                        else
+                                return searchQuery(n->right, val);
+                }
+                return {};
         }
 }
 
-vector<int_pair> interval_tree::getAllOverlaps(int_pair val){
-        vector<int_pair> result;
+vector<node*> interval_tree::getAllOverlaps(int_pair val){
+        vector<node*> result;
         searchAllQuery(root,val,result);
         return result;
 }
 
-void interval_tree::searchAllQuery(node* node, int_pair val, vector<int_pair>& res){
-        if (!node) 
-            return ; 
-        if (overlap(node->data, val))
-            res.push_back(node->data);
+void interval_tree::searchAllQuery(node* n, int_pair val, vector<node*>& res){
+        if (!n) 
+                return ; 
+        if (overlap(n->data, val))
+                res.push_back(n);
 
         int L = val.first;
         int R = val.second;
 
-        if (R < node->data.first)
-            searchAllQuery(node->left, val, res);
-        else if (L > node->data.second){
-                int z = (node->left) ? (node->left->max_right) : (INT_MIN);
+        if (R < n->data.first)
+                searchAllQuery(n->left, val, res);
+        else if (L > n->data.second){
+                int z = (n->left) ? (n->left->max_right) : (INT_MIN);
                 if (z<L)
-                        searchAllQuery(node->right, val, res);
+                        searchAllQuery(n->right, val, res);
         }
         else{
-            searchAllQuery(node->left, val, res);
-            searchAllQuery(node->right, val, res);
+                searchAllQuery(n->left, val, res);
+                searchAllQuery(n->right, val, res);
         }
         return;
                 
@@ -335,25 +409,28 @@ bool interval_tree::overlap(int_pair i1, int_pair i2){
 }
 
 
+vector<string> interval_tree::freePeople(int_pair p, vector<string> v){
+        vector<string> complement = {};
+        auto list = getAllOverlaps(p);
+
+        for(auto x : list){
+                complement.insert(complement.end(),x->people.begin(),x->people.end());
+                set<string> t (complement.begin(),complement.end());
+                complement.assign(t.begin(),t.end());
+        }
+
+        vector<string> ans;
+        sort(v.begin(),v.end());
+        sort(complement.begin(), complement.end());
+        set_difference(v.begin(),v.end(),complement.begin(), complement.end(), back_inserter(ans) );
+        return ans;
+
+}
+
+
+
 //non-member functions
 
-std::ostream& operator<< (std::ostream& c , std::pair<int,int> p){
-        c << "(" << p.first << ", " << p.second << ")";
-        return c;
-}
-
-std::ostream& operator<< (std::ostream& c , node* p){
-        c << p->data << " [" << p->max_right << "]";
-        return c;
-}
-
-void print_pair (optional<pair<int,int>> opt){
-        if(opt.has_value())
-            cout << opt.value();
-        else
-            cout << "NULL";
-}
-    
 void inorder(node* ptr){
         if(ptr){
                 inorder(ptr->left);
@@ -393,19 +470,6 @@ vector<node*> levelorder(node* rt){
         return ans;
 }
 
-void print(const string& prefix, node* node, bool isLeft){
-	if(node){
-        	cout << prefix;
-         	cout << (isLeft ? "├──" : "└──" );
-         	cout << node<< endl;
-         	print( prefix + (isLeft ? "│   " : "    "), node->left, true);
-        	print( prefix + (isLeft ? "│   " : "    "), node->right, false);
-     	}
-}
-
-void print(node* n){
-	print("", n, false);
-}
 
 node* inorder_successor(node* u){
         if(!u) return nullptr;
@@ -419,25 +483,44 @@ node* inorder_successor(node* u){
         return u->parent;
 }
 
+void print(const string& prefix, node* node, bool isLeft){
+	if(node){
+                cout << prefix;
+                cout << (isLeft ? "├──" : "└──" );
+                cout << node<< endl;
+                print( prefix + (isLeft ? "│   " : "    "), node->left, true);
+                print( prefix + (isLeft ? "│   " : "    "), node->right, false);
+        }
+}
 
-//void printTree(node* root, const string& prefix = "", bool isLeft = true) {
-//    if (root == nullptr) {
-//        return;
-//    }
-//
-//    std::cout << prefix;
-//    std::cout << (isLeft ? "├── " : "└── ");
-//    std::cout << root->data << std::endl;
+void print(node* n){
+	print("", n, false);
+}
 
-//    printTree(root->left, prefix + (isLeft ? "│   " : "    "), true);
-//    printTree(root->right, prefix + (isLeft ? "│   " : "    "), false);
-//}
 
-//void printTreeStructure(node* root) {
-//    if (root == nullptr) {
-//        std::cout << "Empty tree" << std::endl;
-//    } else {
-//        std::cout << "Root" << std::endl;
-//        printTree(root, "", false);
-//    }
-//}
+std::ostream& operator<< (std::ostream& c, std::optional<node*> p){
+        if(p)
+                c<< p.value();
+        else 
+                c<< "Nil";
+        return c;
+}
+
+std::ostream& operator<< (std::ostream& c, std::vector<node*> v){
+        for(auto x: v)
+                cout<<x<< " ";
+        return c;
+}
+
+std::ostream& operator<< (std::ostream& c , std::pair<int,int> p){
+        c << "(" << p.first << ", " << p.second << ")";
+        return c;
+}
+
+std::ostream& operator<< (std::ostream& c , node* p){
+
+        c << p->data << " [" << p->max_right << "] " ;
+        for(auto x : p->people) c<<x<<" ";
+
+        return c;
+}

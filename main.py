@@ -24,6 +24,10 @@ API:
 - buildFromList(cls, l)
 
 
+Author: Yi Zhou
+Date: May 19, 2018 
+Reference: http://research.engineering.nyu.edu/~greg/algorithms/classnotes/interval-trees.pdf
+Reference: https://en.wikipedia.org/wiki/Interval_tree
 """
 
 
@@ -35,7 +39,6 @@ class IntervalNode:
     def __init__(self, val):
         assert len(val) == 2
         assert val[0] <= val[1]
-        assert val[0] >= 0 
         val = tuple(val) 
         self.val = val
         self.parent = None
@@ -87,8 +90,6 @@ class IntervalTree:
         """
         assert len(val) == 2
         assert val[1] >= val[0]
-        assert val[0] >= 0 
-
         val = tuple(val)
         return self._dfsQueryOverlap(self.root, val)
     
@@ -97,15 +98,12 @@ class IntervalTree:
         Helper function for query.
         return the first interval we find in the subtree rooted at node.
         """
-        if not node: 
-            return None 
+        if not node: return None 
         if self._isOverlap(node.val, val):
             return node.val
         else:
-            L, R = val[0] , val[1]
+            L, R = val
             if R < node.val[0]:
-                # node = [4,7]
-                # val = [1,3]
                 # Case1
                 #  Right subtree can't overlap, search left
                 # ----- val
@@ -114,8 +112,6 @@ class IntervalTree:
                 #     ----    -----
                 return self._dfsQueryOverlap(node.left, val)
             elif L > node.val[1]:
-                # node = [4,7]
-                # val = [20,22]
                 z = node.left.maxRight if node.left else (-float("inf"))
                 if z >= L:
                     # Case2
@@ -152,8 +148,7 @@ class IntervalTree:
         """
         it should be better then naive iterations.
         """
-        if not node: 
-            return None 
+        if not node: return None 
 
         if self._isOverlap(node.val, val):
             res.append(node.val)
@@ -186,13 +181,11 @@ class IntervalTree:
         """
         check intervals
         """
-
-        # interval1= (1,5)
-        # interval2 = (3,7)
-
         l = sorted([interval1, interval2])
-        return l[1][0] <= l[0][1]
-
+        if l[1][0] <= l[0][1] : 
+            return True
+        else:
+            return False
     
     def getDepth(self):
         """
